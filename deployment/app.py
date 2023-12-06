@@ -44,7 +44,7 @@ if page == 'Home Page':
             '''
         )
         
-#============================= Conclussion =================================
+#============================= Conclusion =================================
     with st.expander("Conclusion"): # conclusion
         st.caption(
             '''
