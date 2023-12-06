@@ -1,1 +1,4 @@
 sqlalchemy
+joblib
+nltk
+nlp-id==0.1.13.0

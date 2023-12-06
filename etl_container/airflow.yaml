@@ -1,9 +1,9 @@
 ---
-version: '3.4'
+version: '3.7'
 
 x-common:
   &common
-  image: apache/airflow:2.3.4
+  build: .
   user: "${AIRFLOW_UID}:0"
   env_file: 
     - .env
@@ -12,6 +12,7 @@ x-common:
     - ./logs:/opt/airflow/logs
     - ./data:/opt/airflow/data
     - ./functions:/opt/airflow/functions
+    - ./stopword_list.joblib:/opt/airflow/stopword_list.joblib
     - /var/run/docker.sock:/var/run/docker.sock
 
 x-depends-on:
@@ -66,7 +67,7 @@ services:
     command:
       - -c
       - |
-        mkdir -p /sources/logs /sources/dags /sources/plugins
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
+        mkdir -p /sources/logs /sources/dags /sources/data
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,data}
         exec /entrypoint airflow version
 
