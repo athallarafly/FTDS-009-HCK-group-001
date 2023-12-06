@@ -1,45 +1,83 @@
 import streamlit as st
-import pandas as pd
 import numpy as np
 import nltk
 from nltk.tokenize import word_tokenize
+from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
 from tensorflow.keras.models import load_model
 from nlp_id.lemmatizer import Lemmatizer
+from nltk.corpus import stopwords
 import re
-import json
-from joblib import load
 
 nltk.download('punkt')
+nltk.download('stopwords')
 
-# compiling the regex expression
-special_char_removal = re.compile(r"[^a-zA-Z\s\']")
+# Define Stopwords
+stopwords_id = set(stopwords.words('indonesian'))
+sw_1 = set(StopWordRemoverFactory().get_stop_words())
+sw_2 = set(stopwords.words('indonesian'))
+stopwords_id.update(sw_1)
+stopwords_id.update(sw_2)
+add_sw = {'tp', 'jg', 'tgl', 'utk', 'nya', 'yg', 'sih', 'aja', 'lg', 'barang', 'tokopedia', 'tokped', 'toped', 'tokopeda',
+          'an', 'aaaa', 'hehe', 'laaah', 'yaa', 'krn', 'sy', 'dgn', 'dg', 'sdh', 'jd', 'brg', 'dapet', 'dah', 'sen',
+          'gan', 'ny', 'kak', 'dpt', 'deh', 'udh', 'dr', 'dg', 'da', 'uda', 'nih', 'gw', 'gin', 'pdhl', 'duh', 'yah', 'loh',
+          'lo', 'jual', 'seller', 'toko', 'sesuai', 'produk', 'pakai', 'pake', 'dtg', 'jgn', 'rb', 'eh',
+          'sya', 'tuh', 'klo', 'bs', 'wa', 'gr', 'spt', 'ps', 'lbh', 'pcs', 'pc', 'blm', 'dlm', 'cpt', 'hr', 'eh', 'knp','pd',
+          'sm', 'jdi', 'bbrp', 'sma', 'sprti', 'kyk', 'ad'}
+remove_sw = {'tidak', 'kurang', 'akurat', 'seenaknya', 'masalahnya', 'segitu', 'sepihak', 'lama', 'pihak', 'alhamdulillah',
+             'percuma', 'makasih', 'kelamaan', 'keterlaluan', 'tepat', 'berkali', 'sekali', 'macam', 'kesekian', 'baik',
+             'waktu', 'cukup', 'bisa', 'banyak', 'biasa', 'baru', 'jelas', 'sesuai', 'sampai', 'tapi', 'betul', 'datang',
+             'masalah', 'banget', 'apa', 'kali', 'kesekian'}
+stopwords_id.update(add_sw)
+stopwords_id.difference_update(remove_sw)
 
-# word mappings
-word_variations = {
-    'ga': 'tidak', 'gak': 'tidak', 'ngga': 'tidak', 'gk': 'tidak', 'tdk': 'tidak',
-    'manstapu': 'mantap', 'mantappp': 'mantap', 'mantabbb': 'mantap', 'mantappss': 'mantap', 
-    'mantaaaap': 'mantap', 'mantappppp': 'mantap', 'mantab': 'mantap',
-    'bangett': 'banget', 'bangettt': 'banget', 'bgt': 'banget',
-    'bagusss': 'bagus', 'baguss': 'bagus', 'bgs': 'bagus',
-    'gpp': 'tidak apa-apa', 'hrg': 'harga', 'terimakasih': 'terima kasih'
-}
-
-#required libraries for the function
-stop_words= load('stopword_list.joblib')
+# Define lemmatizer
 lemmatizer = Lemmatizer()
 
-def text_preprocessing(text):
-    text = text.lower()
-    text = special_char_removal.sub(" ", text)
-    tokens = word_tokenize(text) # tokenization
 
-    tokens = [word_variations.get(word, word) for word in tokens]  # correcting the additional spellings
-    tokens = [lemmatizer.lemmatize(word) for word in tokens]  # Lemmatize to ge the root of the words
-    tokens = [word for word in tokens if word not in stop_words]  # removing stop words
-    
+# Definisikan fungsi untuk memproses teks
+
+def text_preprocessing(text, stop_words, lemmatizer):
+
+    # Case folding
+    text = text.lower()
+
+    # Menghapus special character
+    text = re.sub(r"[^a-zA-Z\s\']", " ", text)
+
+    # Tokenization
+    tokens = word_tokenize(text)
+
+    # Mengganti kata 'ga', 'gak', 'ngga', 'gk', dan 'tdk' menjadi 'tidak'
+    tokens = [word if word.lower() not in {'ga', 'gak', 'ngga', 'gk', 'tdk'} else 'tidak' for word in tokens]
+
+    # Mengganti variasi dari kata mantap
+    tokens = [word if word.lower() not in {'manstapu', 'mantappp', 'mantabbb', 'mantappss', 'mantaaaap', 'mantappppp', 'mantab'} else 'mantap' for word in tokens]
+
+    # Mengganti variasi kata banget
+    tokens = [word if word.lower() not in {'bangett', 'bangettt', 'bgt'} else 'banget' for word in tokens]
+
+    # Mengganti variasi kata bagus
+    tokens = [word if word.lower() not in {'bagusss', 'baguss', 'bgs'} else 'bagus' for word in tokens]
+
+    tokens = [word if word.lower() not in {'gpp'} else 'tidak apa-apa' for word in tokens]
+
+    tokens = [word if word.lower() not in {'hrg'} else 'harga' for word in tokens]
+
+    tokens = [word if word.lower() not in {'terimakasih'} else 'terima kasih' for word in tokens]
+
+    # Lemmatizer untuk mengembalikan kata menjadi bentuk dasarnya
+    tokens = [lemmatizer.lemmatize(word) for word in tokens]
+
+    # Menghapus stopwords
+    tokens = [word for word in tokens if word.lower() not in stop_words]
+
+    # Menggabungkan tokens
     processed_text = ' '.join(tokens)
 
     return processed_text
+
+
+
 
 # Load the sentiment analysis model
 model = load_model('model_rnn')
@@ -53,7 +91,7 @@ def run():
 
     if st.button('Analyze'):
         # Preprocess user input
-        processed_input = text_preprocessing(user_input)
+        processed_input = text_preprocessing(user_input, stopwords_id, lemmatizer)
 
         # Perform inference using the loaded model
         result = model.predict(np.array([processed_input]))  # Assuming the model takes input as a numpy array
@@ -63,3 +101,7 @@ def run():
             st.write('Sentiment: Positive')
         else:
             st.write('Sentiment: Negative')
+            
+# Run the app
+if __name__ == '__main__':
+    run()
