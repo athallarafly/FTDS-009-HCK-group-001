@@ -1,0 +1,6 @@
+/etl_container/.env
+/etl_container/logs
+/etl_container/data
+/gx
+/m12y2023_cleaned.csv
+/PRDECT-ID Dataset.csv
