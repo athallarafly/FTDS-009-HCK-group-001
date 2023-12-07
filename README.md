@@ -28,7 +28,7 @@ Review yang mengekspresikan emosi bahagia dan cinta cenderung memiliki sentimen 
 
 ### Alat: Tensorflow, Scikit-learn, Sastrawi
 ### Objektif:
-Tujuan utamanya adalah membangun sebuah model NLP untuk mengkategorikan ulasan produk ke dalam sentimen positif atau negatif. Model ini akan dievaluasi menggunakan metrik akurasi sebagai tolok ukur utama.
+Tujuan utamanya adalah membangun sebuah model NLP untuk mengkategorikan ulasan produk ke dalam sentimen positif atau negatif. Model ini akan dievaluasi menggunakan metrik akurasi sebagai tolak ukur utama.
 
 ### Kesimpulan:
 Model RNN berhasil mencapai tingkat akurasi sebesar 88% dalam mengklasifikasikan sentimen ulasan produk, sesuai dengan tujuan penggunaan metrik akurasi sebagai tolok ukur performa model. Keberhasilan ini menunjukkan efektivitas pendekatan yang diambil dalam membangun model RNN untuk mengklasifikasikan sentimen ulasan produk secara akurat.
